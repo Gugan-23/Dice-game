@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kylowind Cashervangal</title>
+    <style>
+        :root {
+            --primary: #ffd700;
+            --dark: #0f0f0f;
+            --card: #1c1c1c;
+            --accent: #ff4500;
+            --die-bg: #ffffff;
+            --success: #00ff88;
+            --ai-blue: #00d4ff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, var(--dark) 0%, #1a1a2e 50%, #16213e 100%); color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        h1 { color: var(--primary); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); font-size: 2.5rem; }
+        .tagline { color: #aaa; font-style: italic; margin-bottom: 30px; font-size: 1.1rem; }
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; width: 100%; max-width: 1000px; margin-bottom: 30px; }
+        @media (max-width: 768px) { .game-grid { grid-template-columns: 1fr; gap: 20px; } }
+        .panel { background: var(--card); padding: 30px; border-radius: 20px; border: 2px solid #333; text-align: center; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--primary); transform: scaleX(0); transition: transform 0.3s ease; }
+        .panel.user-active { border-color: var(--primary); box-shadow: 0 0 25px rgba(255, 215, 0, 0.3); }
+        .panel.user-active::before { transform: scaleX(1); }
+        .panel.ai-active { border-color: var(--ai-blue); box-shadow: 0 0 25px rgba(0, 212, 255, 0.3); }
+        .panel.ai-active::before { background: var(--ai-blue); transform: scaleX(1); }
+        .panel h2 { margin-bottom: 20px; color: var(--primary); font-size: 1.5rem; }
+        .username-section { margin-bottom: 20px; }
+        input { padding: 15px 20px; border-radius: 12px; border: 2px solid #444; width: 90%; max-width: 300px; margin: 0 auto 15px; background: #2a2a2a; color: white; font-size: 1.1rem; transition: all 0.3s ease; }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); background: #333; }
+        input::placeholder { color: #888; }
+        button { padding: 18px 40px; background: linear-gradient(45deg, var(--primary), #ffed4a); border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 90%; max-width: 300px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4); }
+        button:disabled { background: #666; cursor: not-allowed; transform: none; }
+        .dice-box { display: flex; justify-content: center; gap: 15px; margin: 25px 0; height: 80px; perspective: 1000px; }
+        .die { width: 65px; height: 65px; background: linear-gradient(145deg, #f8f8f8, #e1e1e1); border-radius: 15px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 8px; box-sizing: border-box; box-shadow: 0 8px 16px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.3); transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); transform-style: preserve-3d; }
+        .die.spinning { animation: spinDice 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55); transform: rotateX(720deg) rotateY(1080deg) scale(1.2); }
+        @keyframes spinDice { 0% { transform: rotateX(0deg) rotateY(0deg) scale(1); box-shadow: 0 8px 16px rgba(0,0,0,0.3); } 25% { transform: rotateX(180deg) rotateY(360deg) scale(1.3); box-shadow: 0 15px 30px rgba(255,215,0,0.4); } 50% { transform: rotateX(360deg) rotateY(720deg) scale(0.9); box-shadow: 0 20px 40px rgba(0,255,204,0.3); } 75% { transform: rotateX(540deg) rotateY(900deg) scale(1.4); box-shadow: 0 25px 50px rgba(255,215,0,0.6); } 100% { transform: rotateX(720deg) rotateY(1080deg) scale(1.1); box-shadow: 0 12px 24px rgba(0,0,0,0.4); } }
+        .die.final { animation: settle 0.5s ease-out; }
+        @keyframes settle { 0% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .pip { background: #333; border-radius: 50%; width: 12px; height: 12px; margin: auto; visibility: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.3); }
+        .die[data-val="1"] .pip:nth-child(5) { visibility: visible; }
+        .die[data-val="2"] .pip:nth-child(1), .die[data-val="2"] .pip:nth-child(9) { visibility: visible; }
+        .die[data-val="3"] .pip:nth-child(1), .die[data-val="3"] .pip:nth-child(5), .die[data-val="3"] .pip:nth-child(9) { visibility: visible; }
+        .die[data-val="4"] .pip:nth-child(1), .die[data-val="4"] .pip:nth-child(3), .die[data-val="4"] .pip:nth-child(7), .die[data-val="4"] .pip:nth-child(9) { visibility: visible; }
+        .die[data-val="5"] .pip:nth-child(1), .die[data-val="5"] .pip:nth-child(3), .die[data-val="5"] .pip:nth-child(5), .die[data-val="5"] .pip:nth-child(7), .die[data-val="5"] .pip:nth-child(9) { visibility: visible; }
+        .die[data-val="6"] .pip:nth-child(1), .die[data-val="6"] .pip:nth-child(3), .die[data-val="6"] .pip:nth-child(4), .die[data-val="6"] .pip:nth-child(6), .die[data-val="6"] .pip:nth-child(7), .die[data-val="6"] .pip:nth-child(9) { visibility: visible; }
+        .stats { margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; font-size: 1.1rem; font-weight: bold; }
+        .stats span { color: var(--primary); }
+        .ai-history { margin-top: 15px; padding: 12px; background: rgba(0,212,255,0.1); border-radius: 8px; font-size: 0.85rem; }
+        .ai-history h4 { color: var(--ai-blue); margin-bottom: 8px; font-size: 0.9rem; }
+        .history-dice { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+        .history-die { width: 25px; height: 25px; background: linear-gradient(145deg, #e1f5fe, #b3e5fc); border-radius: 6px; display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr); padding: 3px; font-size: 10px; font-weight: bold; color: #0277bd; border: 1px solid rgba(0,212,255,0.5); }
+        .status { margin-top: 10px; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; }
+        .status.success { background: rgba(0, 255, 136, 0.2); color: var(--success); }
+        .status.error { background: rgba(255, 69, 0, 0.2); color: var(--accent); }
+        .status.complete { background: rgba(255, 215, 0, 0.2); color: var(--primary); }
+        .leaderboard { width: 100%; max-width: 600px; background: var(--card); border-radius: 20px; overflow: hidden; border: 2px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin: 20px auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: linear-gradient(90deg, #252525, #333); color: var(--primary); padding: 18px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        td { padding: 18px; text-align: center; border-bottom: 1px solid #333; transition: background 0.2s; }
+        tr:hover td { background: rgba(255,215,0,0.05); }
+        .bot-row { color: #00ffcc; font-style: italic; text-shadow: 0 0 5px rgba(0,255,204,0.5); }
+        .rank-1 td:first-child { color: #ffd700; font-size: 1.2rem; }
+        .rank-2 td:first-child { color: #c0c0c0; }
+        .rank-3 td:first-child { color: #cd7f32; }
+    </style>
+</head>
+<body>
+    <h1>Kylowind Cashervangal</h1>
+    <div class="tagline">Interval 4: Infinite AI Showdown - KyloBot1 → KyloBot2 → ∞</div>
+
+    <div class="game-grid">
+        <!-- User Panel -->
+        <div class="panel user-active" id="user-panel">
+            <h2 id="p-name-display">Enter Your Name</h2>
+            <div class="username-section">
+                <input type="text" id="username-input" placeholder="Enter your nickname (min 2 chars)" maxlength="20">
+                <button id="set-username-btn" onclick="setUsername()">Set Name</button>
+            </div>
+            <div class="dice-box" id="player-dice">
+                <div class="die" data-val="1">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+            </div>
+            <button id="roll-btn" onclick="roll()" disabled>ROLL DICE</button>
+            <div class="stats">
+                Score: <span id="p-score">0</span> | 
+                Round: <span id="p-round">0</span>/10
+            </div>
+            <div id="status-message" class="status" style="display: none;"></div>
+        </div>
+
+        <!-- AI Panel - FIXED WITH PROPER DICE & NEW FIELDS -->
+        <div class="panel ai-active" id="ai-panel">
+            <h2 id="ai-name-display">KyloBot1 (AI)</h2>
+            <div class="dice-box" id="bot-dice">
+                <div class="die" data-val="1">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+            </div>
+            <div class="stats">
+                AI Score: <span id="bot-score">0</span> | 
+                AI Rounds: <span id="ai-rounds">0</span>
+            </div>
+            <div class="ai-history" id="ai-history" style="display: none;">
+                <h4>🧠 AI's Last Rolls</h4>
+                <div class="history-dice" id="history-dice"></div>
+            </div>
+            <p style="color: #888; font-size: 0.9rem; margin-top: 15px;">
+                🤖 Progressing through infinite KyloBots!
+            </p>
+        </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="leaderboard">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Score</th>
+                    <th>Rounds</th>
+                </tr>
+            </thead>
+            <tbody id="leader-body">
+                <tr><td colspan="4" style="padding: 40px; color: #666;">Loading leaderboard...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let currentUsername = '';
+        let gameComplete = false;
+        let aiStats = null;
+
+        function createDieHTML(val) {
+            let pips = '';
+            for(let i = 0; i < 9; i++) pips += '<div class="pip"></div>';
+            return `<div class="die" data-val="${val}">${pips}</div>`;
+        }
+
+        function createSmallDieHTML(val) {
+            return `<div class="history-die" data-val="${val}">${val}</div>`;
+        }
+
+        function spinDice(diceContainer, diceValues) {
+            diceContainer.innerHTML = diceValues.map(() => 
+                '<div class="die spinning" data-val="1">' + 
+                Array(9).fill('<div class="pip"></div>').join('') + 
+                '</div>'
+            ).join('');
+            
+            setTimeout(() => {
+                diceContainer.innerHTML = diceValues.map(v => createDieHTML(v)).join('');
+                diceContainer.querySelectorAll('.die').forEach(die => {
+                    die.classList.add('final');
+                    setTimeout(() => die.classList.remove('final'), 500);
+                });
+            }, 1200);
+        }
+
+        function updateAIHistory(diceHistory) {
+            const historyEl = document.getElementById('history-dice');
+            const historyContainer = document.getElementById('ai-history');
+            
+            if (diceHistory && diceHistory.length > 0) {
+                historyEl.innerHTML = diceHistory.flat().map(val => createSmallDieHTML(val)).slice(-9);
+                historyContainer.style.display = 'block';
+            } else {
+                historyContainer.style.display = 'none';
+            }
+        }
+
+        async function loadAIStats() {
+            if (!currentUsername) return;
+            try {
+                const res = await fetch(`/ai-stats/${currentUsername}`);
+                aiStats = await res.json();
+                document.getElementById('ai-rounds').innerText = aiStats.ai_rounds_played || 0;
+                document.getElementById('bot-score').innerText = aiStats.ai_total_score || 0;
+                document.getElementById('ai-name-display').innerText = aiStats.ai_name || 'KyloBot (AI)';
+                
+                if (aiStats.ai_previous_dice && aiStats.ai_previous_dice.length > 0) {
+                    updateAIHistory(aiStats.ai_previous_dice);
+                }
+            } catch (e) {
+                console.log('AI stats load failed');
+            }
+        }
+
+        async function setUsername() {
+            const userInput = document.getElementById('username-input').value.trim();
+            if (!userInput || userInput.length < 2) {
+                showStatus('Username must be at least 2 characters!', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch('/set-username', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: userInput})
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    showStatus(data.error, 'error');
+                    return;
+                }
+
+                currentUsername = data.username;
+                document.getElementById('p-name-display').innerText = currentUsername;
+                document.getElementById('set-username-btn').style.display = 'none';
+                document.getElementById('username-input').disabled = true;
+                document.getElementById('roll-btn').disabled = data.done;
+                document.getElementById('p-round').innerText = data.rounds_played;
+                document.getElementById('p-score').innerText = 0;
+                document.getElementById('bot-score').innerText = 0;
+
+                await loadAIStats();
+
+                if (data.done) {
+                    showStatus('🎉 You completed all 10 rounds! New AI awaits!', 'complete');
+                } else {
+                    showStatus(`Welcome ${currentUsername}! vs ${aiStats?.ai_name || 'KyloBot1'}!`, 'success');
+                }
+            } catch (error) {
+                showStatus('Connection error. Please try again.', 'error');
+            }
+        }
+
+        async function roll() {
+            if (!currentUsername || gameComplete) return;
+
+            const rollBtn = document.getElementById('roll-btn');
+            rollBtn.disabled = true;
+            rollBtn.innerText = 'Rolling...';
+
+            try {
+                const res = await fetch('/roll', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: currentUsername})
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    showStatus(data.error, 'error');
+                    if (data.done) gameComplete = true;
+                    return;
+                }
+
+                // UPDATE ALL SCORES & AI NAME
+                document.getElementById('p-score').innerText = data.cumulative_score;
+                document.getElementById('p-round').innerText = data.rounds_played;
+                document.getElementById('bot-score').innerText = data.bot_cumulative;
+                document.getElementById('ai-rounds').innerText = data.rounds_played; // Match player rounds
+                document.getElementById('ai-name-display').innerText = data.ai_name || 'KyloBot (AI)';
+
+                // SPIN BOTH DICE SIMULTANEOUSLY
+                spinDice(document.getElementById('player-dice'), data.player_dice);
+                spinDice(document.getElementById('bot-dice'), data.bot_dice);
+
+                // UPDATE LEADERBOARD & AI HISTORY
+                updateLeaderboard(data.leaderboard);
+                await loadAIStats();
+
+                if (data.rounds_played >= 10) {
+                    gameComplete = true;
+                    setTimeout(() => showStatus(`🏆 10 Rounds Complete! Next: New KyloBot unlocked!`, 'complete'), 1300);
+                } else {
+                    setTimeout(() => showStatus(`Round ${data.rounds_played}/10 vs ${data.ai_name} 🎲`, 'success'), 1300);
+                }
+            } catch (error) {
+                showStatus('Roll failed. Please try again.', 'error');
+                console.error('Roll error:', error);
+            } finally {
+                setTimeout(() => {
+                    rollBtn.disabled = gameComplete;
+                    rollBtn.innerText = gameComplete ? 'COMPLETE' : 'ROLL DICE';
+                }, 1500);
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+            setTimeout(() => statusEl.style.display = 'none', 4000);
+        }
+
+        function updateLeaderboard(list) {
+            const body = document.getElementById('leader-body');
+            if (!list || list.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="padding: 40px; color: #666;">No players yet!</td></tr>';
+                return;
+            }
+            body.innerHTML = list.map((u, i) => `
+                <tr class="${i < 3 ? 'rank-' + (i+1) : ''} ${u.username.includes('KyloBot') ? 'bot-row' : ''}">
+                    <td>#${i+1}</td>
+                    <td>${u.username}</td>
+                    <td><strong>${u.total_score}</strong></td>
+                    <td>${u.rounds_played}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Enter key support
+        document.getElementById('username-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') setUsername();
+        });
+
+        // Load initial leaderboard
+        window.onload = async () => {
+            try {
+                const res = await fetch('/leaderboard');
+                const data = await res.json();
+                updateLeaderboard(data);
+            } catch (e) {
+                console.log('Leaderboard load failed');
+            }
+        };
+    </script>
+</body>
+</html>

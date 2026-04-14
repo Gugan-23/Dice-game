@@ -1,0 +1,506 @@
+give the html segnment to add that alonein my <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Analytics - Casino Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: black; 
+            min-height: 100vh; 
+            color: white; 
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .navbar, .section-header { 
+            background: rgba(0,0,0,0.3); 
+            backdrop-filter: blur(10px); 
+            padding: 1rem 0; 
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .navbar-container, .section-header { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 20px; 
+        }
+        .navbar-brand, .section-title { font-size: 1.5rem; font-weight: bold; color: #ffd700; }
+        .back-btn, .refresh-btn { 
+            background: rgba(255,255,255,0.2); 
+            color: white; 
+            border: none; 
+            padding: 12px 25px; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .back-btn:hover, .refresh-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.05); }
+        .refresh-btn { background: #4CAF50; }
+        .refresh-btn:hover { background: #45a049; }
+
+
+        .header { text-align: center; margin: 2rem 0; }
+        .header h1 { font-size: 2.8rem; margin-bottom: 10px; color: #ffd700; }
+        
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 20px; 
+            margin: 2rem 0; 
+        }
+        .stat-card { 
+            background: rgba(255,255,255,0.15); 
+            padding: 30px; 
+            border-radius: 20px; 
+            text-align: center; 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-label { display: block; opacity: 0.8; margin-bottom: 10px; font-size: 0.95rem; }
+        .stat-value { font-size: 2.5rem; font-weight: bold; color: #ffd700; }
+
+
+        .games-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); 
+            gap: 20px; 
+        }
+        .game-card { 
+            background: rgba(255,255,255,0.1); 
+            padding: 25px; 
+            border-radius: 20px; 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .game-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .game-header { 
+            font-size: 1.3rem; 
+            font-weight: bold; 
+            margin-bottom: 15px; 
+            color: #ffd700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .analyze-btn { 
+            background: #ff9800; 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 0.9rem;
+        }
+        .analyze-btn:hover { background: #e68900; }
+        .game-meta { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin: 15px 0; 
+            font-size: 0.9rem;
+        }
+        .meta-item { 
+            background: rgba(255,255,255,0.1); 
+            padding: 10px; 
+            border-radius: 10px; 
+            text-align: center;
+        }
+
+
+        /* NEW PAYOFF MATRIX STYLES */
+        .analysis-panel { 
+            background: rgba(255,255,255,0.1); 
+            padding: 30px; 
+            border-radius: 20px; 
+            margin: 2rem 0; 
+            border: 1px solid rgba(255,255,255,0.2);
+            display: none;
+        }
+        .analysis-panel.active { display: block; animation: slideIn 0.3s ease; }
+        
+        /* 2x2 PAYOFF MATRIX - EXACTLY LIKE YOUR IMAGE */
+        .payoff-matrix { 
+            background: rgba(255,255,255,0.2); 
+            padding: 40px; 
+            border-radius: 25px; 
+            backdrop-filter: blur(20px); 
+            border: 3px solid rgba(255,215,0,0.5);
+            max-width: 600px; 
+            margin: 30px auto;
+        }
+        .matrix-title { 
+            text-align: center; 
+            font-size: 1.8rem; 
+            font-weight: bold; 
+            color: #ffd700; 
+            margin-bottom: 30px; 
+        }
+        .matrix-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            background: rgba(0,0,0,0.4); 
+            padding: 25px; 
+            border-radius: 20px;
+        }
+        .matrix-cell { 
+            aspect-ratio: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            background: rgba(255,255,255,0.15); 
+            border: 3px solid rgba(255,215,0,0.4); 
+            border-radius: 15px; 
+            padding: 20px; 
+            font-size: 1.5rem; 
+            font-weight: bold; 
+            position: relative;
+            transition: all 0.3s;
+        }
+        .matrix-cell:hover { 
+            background: rgba(255,215,0,0.3); 
+            transform: scale(1.05); 
+        }
+        .player-label { 
+            position: absolute; 
+            top: -20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: rgba(0,0,0,0.8); 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            font-size: 0.9rem; 
+            font-weight: bold; 
+            color: #ffd700;
+        }
+        .strategy-label { 
+            writing-mode: vertical-rl; 
+            text-orientation: mixed; 
+            font-weight: bold; 
+            color: #ffd700; 
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        .payoff-pair { 
+            display: flex; 
+            gap: 5px; 
+            font-size: 1.3rem; 
+        }
+        .player-a { color: #4CAF50; font-weight: bold; }
+        .player-b { color: #FF9800; font-weight: bold; }
+
+
+        /* Game History Table */
+        .history-table { 
+            background: rgba(255,255,255,0.1); 
+            padding: 25px; 
+            border-radius: 20px; 
+            margin-top: 30px;
+        }
+        .history-header { 
+            font-size: 1.5rem; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            color: #ffd700; 
+            text-align: center;
+        }
+        .moves-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .moves-table th, .moves-table td { 
+            padding: 12px; 
+            text-align: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .moves-table th { 
+            background: rgba(255,215,0,0.2); 
+            color: #ffd700; 
+            font-weight: bold;
+        }
+        .win { color: #4CAF50; font-weight: bold; }
+        .loss { color: #f44336; font-weight: bold; }
+        .draw { color: #FF9800; font-weight: bold; }
+
+
+        #analysisLoading { text-align: center; color: #ffd700; padding: 40px; display: none; }
+        .loading { text-align: center; color: #ffd700; font-style: italic; padding: 60px; font-size: 1.2rem; }
+        .error { color: #ff6b6b; text-align: center; padding: 40px; background: rgba(255,107,107,0.1); border-radius: 15px; }
+        
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 768px) {
+            .stats-grid, .games-grid { grid-template-columns: 1fr; }
+            .game-meta { grid-template-columns: 1fr; }
+            .matrix-grid { gap: 10px; padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="{{ url_for('dashboard') }}" class="back-btn">← Back to Dashboard</a>
+                <div class="navbar-brand">⚙️ Admin Analytics Dashboard</div>
+            </div>
+        </nav>
+
+
+        <div class="header">
+            <h1>🎰 Casino Analytics</h1>
+            <p>Real-time statistics and game theory analysis</p>
+        </div>
+
+
+        <!-- Stats Grid -->
+        <div id="statsGrid" class="stats-grid">
+            <div class="loading">Loading statistics...</div>
+        </div>
+
+
+        <!-- Game Theory Games -->
+        <div class="games-section">
+            <div class="section-header">
+                <h2 class="section-title">🎮 Game Theory Analysis</h2>
+                <button class="refresh-btn" onclick="loadGamesList()">🔄 Refresh</button>
+            </div>
+            <div id="gamesGrid" class="games-grid">
+                <div class="loading">Loading games...</div>
+            </div>
+        </div>
+
+
+        <!-- Analysis Panel WITH PAYOFF MATRIX -->
+        <div id="analysisPanel" class="analysis-panel">
+            <div class="section-header">
+                <h2 class="section-title">📊 Game Analysis & Payoff Matrix</h2>
+                <button class="back-btn" onclick="closeAnalysis()">← Back to Games</button>
+            </div>
+            <div id="analysisLoading">Loading payoff matrix...</div>
+            <div id="analysisResult"></div>
+            
+        </div>
+    </div>
+
+
+    <script>
+        let currentGameData = null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatistics();
+            loadGamesList();
+        });
+
+
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/admin/statistics');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('statsGrid').innerHTML = `
+                        <div class="stat-card">
+                            <span class="stat-label">Total Users</span>
+                            <span class="stat-value">${data.total_users || 0}</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Total Games</span>
+                            <span class="stat-value">${data.total_games || 0}</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Active Sessions</span>
+                            <span class="stat-value">${data.active_sessions || 0}</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Game Collections</span>
+                            <span class="stat-value">${data.total_game_collections || 0}</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Total Rounds</span>
+                            <span class="stat-value">${data.total_rounds || 0}</span>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+
+        async function loadGamesList() {
+            try {
+                const response = await fetch('/api/admin/game-theory-games');
+                const data = await response.json();
+                
+                if (data.success && data.games.length > 0) {
+                    document.getElementById('gamesGrid').innerHTML = data.games.map(game => `
+                        <div class="game-card" onclick="analyzeGame('${game.collection}')">
+                            <div class="game-header">
+                                ${game.collection.replace('_vs_', ' vs ')}
+                                <button class="analyze-btn">📊 Analyze</button>
+                            </div>
+                            <div class="game-meta">
+                                <div class="meta-item">
+                                    <div style="font-size: 0.8rem; opacity: 0.8;">Rounds</div>
+                                    <div class="stat-value">${game.total_rounds}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div style="font-size: 0.8rem; opacity: 0.8;">Players</div>
+                                    <div style="font-size: 0.9rem;">${game.players}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading games:', error);
+            }
+        }
+
+
+        async function analyzeGame(gameCollection) {
+            document.getElementById('gamesGrid').style.display = 'none';
+            document.getElementById('analysisPanel').classList.add('active');
+            
+            try {
+                document.getElementById('analysisLoading').style.display = 'block';
+                
+                // Get game analysis
+                const analysisResponse = await fetch(`/api/admin/game-analysis/${encodeURIComponent(gameCollection)}`);
+                const analysisData = await analysisResponse.json();
+                
+                // Get full matrix data
+                const matrixResponse = await fetch(`/api/payoff-matrix/dice_game_1`); 
+                const matrixData = await matrixResponse.json();
+                
+                currentGameData = matrixData.matrix_data.find(game => 
+                    game.collection.includes(gameCollection.replace('game_', ''))
+                ) || matrixData.matrix_data[0];
+                
+                if (analysisData.success && currentGameData) {
+                    displayPayoffMatrix(analysisData, currentGameData);
+                }
+            } catch (error) {
+                console.error('Error analyzing game:', error);
+                document.getElementById('analysisResult').innerHTML = '<div class="error">Failed to load game data</div>';
+            } finally {
+                document.getElementById('analysisLoading').style.display = 'none';
+            }
+        }
+
+
+        function displayPayoffMatrix(analysis, gameData) {
+            const moves = gameData.moves;
+            const avgPlayerScore = moves.reduce((sum, m) => sum + m.player.round_score, 0) / moves.length;
+            const avgAIScore = moves.reduce((sum, m) => sum + m.ai.round_score, 0) / moves.length;
+            
+            document.getElementById('analysisResult').innerHTML = `
+                <!-- Summary Stats -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Rounds</span>
+                        <span class="stat-value">${analysis.total_rounds}</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Player Wins</span>
+                        <span class="stat-value" style="color: #4CAF50;">${analysis.player_wins}</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">AI Wins</span>
+                        <span class="stat-value" style="color: #f44336;">${analysis.ai_wins}</span>
+                    </div>
+                    
+                </div>
+
+
+                <!-- 2x2 PAYOFF MATRIX -->
+                <div class="payoff-matrix">
+                    <div class="matrix-title">${analysis.player} vs AI Payoff Matrix</div>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell">
+                            <div class="player-label">Player</div>
+                            <div class="strategy-label">X</div>
+                            <div class="payoff-pair">
+                                <span class="player-a">(${Math.round(avgPlayerScore)},${Math.round(avgAIScore)})</span>
+                            </div>
+                        </div>
+                        <div class="matrix-cell">
+                            <div class="strategy-label">X</div>
+                            <div class="payoff-pair">
+                                <span class="player-b">(${Math.round(avgPlayerScore*0.8)},${Math.round(avgAIScore*1.2)})</span>
+                            </div>
+                        </div>
+                        <div class="matrix-cell">
+                            <div class="strategy-label">Y</div>
+                            <div class="payoff-pair">
+                                <span class="player-a">(${Math.round(avgPlayerScore*0.7)},${Math.round(avgAIScore*0.9)})</span>
+                            </div>
+                        </div>
+                        <div class="matrix-cell">
+                            <div class="player-label">AI</div>
+                            <div class="strategy-label">Y</div>
+                            <div class="payoff-pair">
+                                <span class="player-b">(${Math.round(avgPlayerScore*0.6)},${Math.round(avgAIScore)})</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Round History -->
+                <div class="history-table">
+                    <div class="history-header">📊 Round-by-Round Results</div>
+                    <table class="moves-table">
+                        <thead>
+                            <tr>
+                                <th>Round</th>
+                                <th>Player Dice</th>
+                                <th>P Score</th>
+                                <th>AI Dice</th>
+                                <th>A Score</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${gameData.moves.slice(-10).map(move => `
+                                <tr>
+                                    <td>#${move.round}</td>
+                                    <td>${move.player.dice.join(',')}</td>
+                                    <td class="win">${move.player.round_score}</td>
+                                    <td>${move.ai.dice.join(',')}</td>
+                                    <td class="loss">${move.ai.round_score}</td>
+                                    <td class="${move.payoff.player_wins ? 'win' : move.payoff.ai_wins ? 'loss' : 'draw'}">
+                                        ${move.payoff.player_wins ? '✅Win' : move.payoff.ai_wins ? '❌Loss' : '🤝Draw'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+
+        function closeAnalysis() {
+            document.getElementById('analysisPanel').classList.remove('active');
+            document.getElementById('gamesGrid').style.display = 'grid';
+        }
+    </script>
+</body>
+</html> ad in this and give full prgm
